@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HelpDesk — Sistema de Chamados</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f7f8fb;
+    --surface: #ffffff;
+    --surface-2: #f1f3f9;
+    --border: #e4e8f0;
+    --border-strong: #d2d8e6;
+    --text: #1a2233;
+    --text-soft: #5a6478;
+    --text-muted: #8b93a7;
+    --primary: #4f46e5;
+    --primary-soft: #eef0fe;
+    --primary-dark: #3c34c4;
+
+    --critico: #e11d48;  --critico-bg: #fef0f3;
+    --urgente: #ea580c;  --urgente-bg: #fff4ec;
+    --medio:   #ca8a04;  --medio-bg:   #fefae8;
+    --baixo:   #059669;  --baixo-bg:   #ecfdf5;
+
+    --n1: #0284c7; --n1-bg: #e8f5fd;
+    --n2: #7c3aed; --n2-bg: #f2ecff;
+    --n3: #db2777; --n3-bg: #fdecf5;
+
+    --ok: #059669; --ok-bg: #ecfdf5;
+    --warn: #ca8a04; --warn-bg: #fefae8;
+    --late: #e11d48; --late-bg: #fef0f3;
+
+    --shadow-sm: 0 1px 2px rgba(20,30,60,0.05);
+    --shadow: 0 4px 16px rgba(20,30,60,0.06);
+    --shadow-lg: 0 12px 40px rgba(20,30,60,0.10);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --fd: 'Space Grotesk', sans-serif;
+    --fb: 'Inter', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--fb); -webkit-font-smoothing: antialiased; }
+  h1,h2,h3,h4 { font-family: var(--fd); font-weight: 600; letter-spacing: -0.02em; }
+  button { font-family: var(--fb); cursor: pointer; }
+  input, select, textarea {
+    font-family: var(--fb); width: 100%; background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    padding: 11px 13px; font-size: 14px; color: var(--text); outline: none;
+    transition: border-color .16s, box-shadow .16s;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+  textarea { resize: vertical; min-height: 84px; line-height: 1.5; }
+  label { font-size: 12px; font-weight: 600; color: var(--text-soft); display: block; margin-bottom: 6px; }
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+    padding: 11px 18px; border-radius: var(--radius-sm); border: none; font-size: 14px;
+    font-weight: 600; transition: all .16s; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .btn-ghost { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-soft); }
+  .btn-ghost:hover { border-color: var(--border-strong); color: var(--text); }
+  .btn-danger { background: var(--critico-bg); color: var(--critico); }
+  .btn-danger:hover { background: var(--critico); color: #fff; }
+  .btn-sm { padding: 7px 12px; font-size: 12.5px; border-radius: 7px; }
+  .btn-full { width: 100%; }
+
+  .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px;
+    background: radial-gradient(circle at 20% 20%, #eef0fe 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, #fce7f3 0%, transparent 45%), var(--bg); }
+  .auth-card { width: 100%; max-width: 410px; background: var(--surface); border-radius: 22px;
+    box-shadow: var(--shadow-lg); padding: 38px 34px; }
+  .auth-logo { text-align: center; margin-bottom: 28px; }
+  .auth-logo .mark { width: 60px; height: 60px; border-radius: 17px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed); display: inline-grid;
+    place-items: center; font-size: 28px; margin-bottom: 14px; box-shadow: 0 8px 22px rgba(79,70,229,.32); }
+  .auth-logo h1 { font-size: 25px; }
+  .auth-logo p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+  .auth-tabs { display: flex; background: var(--surface-2); border-radius: 11px; padding: 4px; margin-bottom: 22px; }
+  .auth-tab { flex: 1; text-align: center; padding: 9px; font-size: 13.5px; font-weight: 600;
+    border-radius: 8px; color: var(--text-muted); transition: all .16s; }
+  .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); }
+  .auth-form { display: flex; flex-direction: column; gap: 15px; }
+  .auth-form.hidden { display: none; }
+  .auth-err { font-size: 12.5px; color: var(--critico); min-height: 16px; text-align: center; font-weight: 500; }
+  .auth-note { font-size: 11.5px; color: var(--text-muted); text-align: center; line-height: 1.6; }
+
+  .app { display: none; min-height: 100vh; }
+  .app.active { display: grid; grid-template-columns: 236px 1fr; }
+  .sidebar { background: var(--surface); border-right: 1px solid var(--border); padding: 22px 16px;
+    display: flex; flex-direction: column; gap: 6px; position: sticky; top: 0; height: 100vh; }
+  .side-logo { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .side-logo .mark { width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--primary), #7c3aed); display: grid; place-items: center; font-size: 18px; }
+  .side-logo .txt h3 { font-size: 16px; }
+  .side-logo .txt span { font-size: 10.5px; color: var(--text-muted); }
+  .nav-item { display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 10px;
+    font-size: 13.5px; font-weight: 500; color: var(--text-soft); transition: all .14s; border: none; background: none; text-align: left; width: 100%; }
+  .nav-item:hover { background: var(--surface-2); color: var(--text); }
+  .nav-item.active { background: var(--primary-soft); color: var(--primary); font-weight: 600; }
+  .nav-item .ico { font-size: 16px; width: 20px; text-align: center; }
+  .nav-sep { height: 1px; background: var(--border); margin: 10px 4px; }
+  .side-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--border); }
+  .side-user { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .avatar { width: 34px; height: 34px; border-radius: 9px; background: var(--primary-soft);
+    color: var(--primary); display: grid; place-items: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
+  .side-user .info { min-width: 0; }
+  .side-user .info b { font-size: 13px; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-user .info span { font-size: 11px; color: var(--text-muted); }
+
+  .main { padding: 28px 34px; max-width: 1340px; width: 100%; }
+  .page { display: none; animation: fade .3s ease; }
+  .page.active { display: block; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; gap: 16px; flex-wrap: wrap; }
+  .page-head h2 { font-size: 24px; }
+  .page-head p { font-size: 13.5px; color: var(--text-muted); margin-top: 4px; }
+
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 26px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 20px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+  .kpi .label { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; text-transform: uppercase; letter-spacing: .04em; }
+  .kpi .value { font-family: var(--fd); font-size: 32px; font-weight: 700; line-height: 1; }
+  .kpi .sub { font-size: 11.5px; color: var(--text-muted); margin-top: 6px; }
+  .kpi .accent-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow-sm); margin-bottom: 22px; overflow: hidden; }
+  .panel-head { padding: 16px 22px; border-bottom: 1px solid var(--border); display: flex;
+    align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .panel-head h3 { font-size: 16px; }
+  .panel-body { padding: 22px; }
+
+  .chips { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+  .chip { padding: 6px 13px; border-radius: 99px; border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text-soft); font-size: 12.5px; font-weight: 600; transition: all .14s; }
+  .chip:hover { border-color: var(--border-strong); }
+  .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .search { max-width: 240px; }
+
+  .ticket-list { display: flex; flex-direction: column; gap: 11px; }
+  .ticket { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 18px; display: flex; gap: 15px; align-items: flex-start; transition: all .16s; cursor: pointer; box-shadow: var(--shadow-sm); }
+  .ticket:hover { border-color: var(--border-strong); box-shadow: var(--shadow); transform: translateY(-1px); }
+  .ticket .bar { width: 4px; align-self: stretch; border-radius: 4px; flex-shrink: 0; }
+  .ticket-main { flex: 1; min-width: 0; }
+  .ticket-top { display: flex; align-items: center; gap: 9px; margin-bottom: 5px; flex-wrap: wrap; }
+  .ticket-id { font-family: var(--fd); font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .ticket-title { font-size: 14.5px; font-weight: 600; }
+  .ticket-desc { font-size: 12.5px; color: var(--text-soft); line-height: 1.5; margin-bottom: 9px; }
+  .ticket-tags { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .ticket-side { display: flex; flex-direction: column; align-items: flex-end; gap: 7px; flex-shrink: 0; }
+
+  .tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+  .t-critico { background: var(--critico-bg); color: var(--critico); }
+  .t-urgente { background: var(--urgente-bg); color: var(--urgente); }
+  .t-medio   { background: var(--medio-bg);   color: var(--medio); }
+  .t-baixo   { background: var(--baixo-bg);   color: var(--baixo); }
+  .t-n1 { background: var(--n1-bg); color: var(--n1); }
+  .t-n2 { background: var(--n2-bg); color: var(--n2); }
+  .t-n3 { background: var(--n3-bg); color: var(--n3); }
+  .t-muted { background: var(--surface-2); color: var(--text-soft); }
+  .t-aberto    { background: var(--n1-bg); color: var(--n1); }
+  .t-andamento { background: var(--urgente-bg); color: var(--urgente); }
+  .t-resolvido { background: var(--baixo-bg); color: var(--baixo); }
+  .t-cancelado { background: var(--surface-2); color: var(--text-muted); }
+  .t-ok   { background: var(--ok-bg);   color: var(--ok); }
+  .t-warn { background: var(--warn-bg); color: var(--warn); }
+  .t-late { background: var(--late-bg); color: var(--late); }
+  .sla-pill { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-muted);
+    font-weight: 700; text-align: left; padding: 11px 14px; border-bottom: 1.5px solid var(--border); }
+  td { padding: 13px 14px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background .12s; }
+  tbody tr:hover { background: var(--surface-2); }
+
+  .opt-grid { display: grid; gap: 8px; }
+  .opt-grid.c4 { grid-template-columns: repeat(2, 1fr); }
+  .opt-grid.c3 { grid-template-columns: repeat(3, 1fr); }
+  .opt-btn { padding: 11px 8px; border-radius: var(--radius-sm); border: 2px solid var(--border);
+    background: var(--surface); font-size: 12px; font-weight: 600; transition: all .14s; color: var(--text-soft); text-align: center; }
+  .opt-btn:hover { border-color: var(--border-strong); }
+  .opt-btn[data-v="critico"].active { background: var(--critico); border-color: var(--critico); color: #fff; }
+  .opt-btn[data-v="urgente"].active { background: var(--urgente); border-color: var(--urgente); color: #fff; }
+  .opt-btn[data-v="medio"].active   { background: var(--medio);   border-color: var(--medio);   color: #fff; }
+  .opt-btn[data-v="baixo"].active   { background: var(--baixo);   border-color: var(--baixo);   color: #fff; }
+  .opt-btn[data-v="n1"].active { background: var(--n1); border-color: var(--n1); color: #fff; }
+  .opt-btn[data-v="n2"].active { background: var(--n2); border-color: var(--n2); color: #fff; }
+  .opt-btn[data-v="n3"].active { background: var(--n3); border-color: var(--n3); color: #fff; }
+
+  .modal-bg { position: fixed; inset: 0; background: rgba(20,28,50,.5); backdrop-filter: blur(3px);
+    z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-bg.open { display: flex; }
+  .modal { background: var(--surface); border-radius: 20px; width: 580px; max-width: 100%;
+    max-height: 92vh; overflow-y: auto; box-shadow: var(--shadow-lg); animation: pop .22s ease; }
+  @keyframes pop { from { opacity: 0; transform: scale(.96) translateY(10px); } to { opacity: 1; transform: none; } }
+  .modal-head { padding: 22px 26px 0; }
+  .modal-body { padding: 18px 26px 26px; }
+  .modal-sec { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted);
+    font-weight: 700; margin: 22px 0 12px; padding-top: 18px; border-top: 1px solid var(--border); }
+  .modal-sec:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 4px; }
+  .field { margin-bottom: 14px; }
+  .field .val { font-size: 13.5px; color: var(--text); font-weight: 500; }
+
+  .sla-track { height: 7px; background: var(--surface-2); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+  .sla-fill { height: 100%; border-radius: 99px; transition: width .4s; }
+
+  .flow { display: flex; align-items: center; gap: 0; margin: 4px 0 8px; }
+  .flow-step { flex: 1; text-align: center; position: relative; }
+  .flow-step::before { content: ''; position: absolute; top: 12px; left: -50%; width: 100%; height: 2px; background: var(--border); }
+  .flow-step:first-child::before { display: none; }
+  .flow-dot { width: 26px; height: 26px; border-radius: 50%; background: var(--surface); border: 2px solid var(--border);
+    display: grid; place-items: center; margin: 0 auto 5px; position: relative; z-index: 1; font-size: 12px; }
+  .flow-label { font-size: 10.5px; color: var(--text-muted); font-weight: 600; }
+  .flow-step.done .flow-dot, .flow-step.active .flow-dot { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .flow-step.done::before, .flow-step.active::before { background: var(--primary); }
+  .flow-step.active .flow-label, .flow-step.done .flow-label { color: var(--primary); }
+
+  .bar-row { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+  .bar-row .bl { width: 90px; font-size: 12.5px; font-weight: 600; color: var(--text-soft); }
+  .bar-row .bt { flex: 1; height: 24px; background: var(--surface-2); border-radius: 7px; overflow: hidden; }
+  .bar-row .bf { height: 100%; border-radius: 7px; display: flex; align-items: center; padding-left: 9px;
+    color: #fff; font-size: 11.5px; font-weight: 700; min-width: 26px; transition: width .5s; }
+  .bar-row .bv { width: 38px; text-align: right; font-weight: 700; font-size: 13px; }
+
+  .empty { text-align: center; padding: 50px 20px; color: var(--text-muted); }
+  .empty .ico { font-size: 40px; opacity: .4; margin-bottom: 10px; }
+  .empty p { font-size: 13.5px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: var(--text); color: #fff;
+    padding: 13px 20px; border-radius: 11px; font-size: 13.5px; font-weight: 500; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transform: translateY(12px); transition: all .3s; z-index: 999; }
+  .toast.show { opacity: 1; transform: none; }
+  .toast.err { background: var(--critico); }
+  .toast.ok { background: var(--ok); }
+
+  .cfg-banner { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 22px; display: flex; gap: 12px; align-items: flex-start; }
+  .cfg-banner .ico { font-size: 20px; }
+  .cfg-banner b { color: #9a3412; }
+  .cfg-banner p { font-size: 13px; color: #7c2d12; line-height: 1.6; margin-top: 3px; }
+  .cfg-banner code { background: #fff; padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+  @media (max-width: 880px) {
+    .app.active { grid-template-columns: 1fr; }
+    .sidebar { position: fixed; bottom: 0; left: 0; right: 0; top: auto; height: auto; flex-direction: row;
+      z-index: 60; padding: 8px; overflow-x: auto; }
+    .side-logo, .nav-sep, .side-foot { display: none; }
+    .nav-item { flex-direction: column; gap: 3px; font-size: 10px; padding: 7px 10px; white-space: nowrap; }
+    .nav-item .ico { font-size: 18px; }
+    .main { padding: 18px; padding-bottom: 80px; }
+    .field-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="auth">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="mark">🎯</div>
+      <h1>HelpDesk</h1>
+      <p>Sistema de Chamados · Técnico em Informática</p>
+    </div>
+    <div class="auth-tabs">
+      <div class="auth-tab active" onclick="authTab('login')">Entrar</div>
+      <div class="auth-tab" onclick="authTab('signup')">Cadastrar</div>
+    </div>
+
+    <div class="auth-form" id="form-login">
+      <div><label>Usuário</label><input id="li-user" placeholder="seu.usuario" autocomplete="username"></div>
+      <div><label>Senha</label><input id="li-pass" type="password" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="auth-err" id="li-err"></div>
+      <button class="btn btn-primary btn-full" id="li-btn" onclick="doLogin()">Entrar</button>
+    </div>
+
+    <div class="auth-form hidden" id="form-signup">
+      <div><label>Nome completo</label><input id="su-nome" placeholder="Ex: João Silva"></div>
+      <div><label>Usuário</label><input id="su-user" placeholder="joao.silva"></div>
+      <div><label>Setor</label>
+        <select id="su-setor">
+          <option value="">Selecione...</option>
+          <option>TI</option><option>Financeiro</option><option>RH</option>
+          <option>Vendas</option><option>Administrativo</option><option>Produção</option><option>Suporte</option>
+        </select>
+      </div>
+      <div><label>Senha</label><input id="su-pass" type="password" placeholder="Mínimo 4 caracteres"></div>
+      <div class="auth-err" id="su-err"></div>
+      <button class="btn btn-primary btn-full" id="su-btn" onclick="doSignup()">Criar conta</button>
+      <p class="auth-note">Você será cadastrado como <b>Usuário</b>. O Supervisor pode alterar seu perfil depois.</p>
+    </div>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <aside class="sidebar">
+    <div class="side-logo">
+      <div class="mark">🎯</div>
+      <div class="txt"><h3>HelpDesk</h3><span id="side-empresa">Chamados</span></div>
+    </div>
+
+    <button class="nav-item" data-page="dash" onclick="nav('dash')"><span class="ico">📊</span> Dashboard</button>
+    <button class="nav-item" data-page="novo" onclick="nav('novo')"><span class="ico">➕</span> Abrir Chamado</button>
+    <button class="nav-item" data-page="meus" onclick="nav('meus')"><span class="ico">📋</span> Meus Chamados</button>
+    <button class="nav-item" data-page="fila" onclick="nav('fila')"><span class="ico">🎫</span> Fila de Atendimento</button>
+    <div class="nav-sep" id="sep-admin"></div>
+    <button class="nav-item" data-page="users" onclick="nav('users')"><span class="ico">👥</span> Usuários</button>
+
+    <div class="side-foot">
+      <div class="side-user">
+        <div class="avatar" id="side-avatar">--</div>
+        <div class="info"><b id="side-nome">—</b><span id="side-perfil">—</span></div>
+      </div>
+      <button class="btn btn-ghost btn-sm btn-full" onclick="logout()">Sair</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="cfg-banner" id="cfg-banner" style="display:none;">
+      <div class="ico">⚙️</div>
+      <div>
+        <b>Modo demonstração (dados locais)</b>
+        <p>O Supabase ainda não está configurado, então os dados ficam salvos apenas neste navegador. Para uso colaborativo online, configure as chaves no topo do código (constantes <code>SUPABASE_URL</code> e <code>SUPABASE_KEY</code>).</p>
+      </div>
+    </div>
+
+    <section class="page" id="page-dash">
+      <div class="page-head">
+        <div><h2>Dashboard</h2><p id="dash-sub">Visão geral em tempo real dos chamados</p></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadAll(true)">🔄 Atualizar</button>
+      </div>
+      <div class="kpi-grid" id="dash-kpis"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;" id="dash-cols">
+        <div class="panel">
+          <div class="panel-head"><h3>Por Prioridade</h3></div>
+          <div class="panel-body" id="dash-prio"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Desempenho de SLA</h3></div>
+          <div class="panel-body" id="dash-sla"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Por Nível de Atendimento</h3></div>
+          <div class="panel-body" id="dash-nivel"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Carga por Técnico</h3></div>
+          <div class="panel-body" id="dash-tec"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>⚠️ Chamados com SLA crítico</h3><span class="tag t-late" id="dash-late-count">0</span></div>
+        <div class="panel-body"><div class="ticket-list" id="dash-late"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-novo">
+      <div class="page-head"><div><h2>Abrir Chamado</h2><p>Registre uma nova solicitação de suporte</p></div></div>
+      <div class="panel" style="max-width:680px;">
+        <div class="panel-body">
+          <div class="field"><label>Título do problema</label><input id="n-title" placeholder="Ex: Computador não liga"></div>
+          <div class="field"><label>Categoria</label>
+            <select id="n-cat">
+              <option value="">Selecione...</option>
+              <option>Hardware</option><option>Software</option><option>Rede / Internet</option>
+              <option>Impressora</option><option>E-mail</option><option>Acesso / Senha</option>
+              <option>Sistema Interno</option><option>Outros</option>
+            </select>
+          </div>
+          <div class="field"><label>Descrição detalhada</label><textarea id="n-desc" placeholder="Descreva o que aconteceu, quando começou e o que já tentou..."></textarea></div>
+          <div class="field">
+            <label>Prioridade <span style="color:var(--text-muted);font-weight:500;">(define o prazo de SLA)</span></label>
+            <div class="opt-grid c4" id="n-prio">
+              <button class="opt-btn" data-v="critico" onclick="pick('n-prio',this)">🔴 Crítico · 2h</button>
+              <button class="opt-btn" data-v="urgente" onclick="pick('n-prio',this)">🟠 Urgente · 8h</button>
+              <button class="opt-btn" data-v="medio"   onclick="pick('n-prio',this)">🟡 Médio · 24h</button>
+              <button class="opt-btn" data-v="baixo"   onclick="pick('n-prio',this)">🟢 Baixo · 72h</button>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" style="margin-top:8px;" onclick="abrirChamado()">Abrir chamado</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="page-meus">
+      <div class="page-head"><div><h2>Meus Chamados</h2><p id="meus-sub">Acompanhe suas solicitações</p></div></div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="chips" id="meus-filters">
+            <button class="chip active" onclick="setFilter('meus','todos',this)">Todos</button>
+            <button class="chip" onclick="setFilter('meus','aberto',this)">Abertos</button>
+            <button class="chip" onclick="setFilter('meus','andamento',this)">Em andamento</button>
+            <button class="chip" onclick="setFilter('meus','resolvido',this)">Resolvidos</button>
+          </div>
+        </div>
+        <div class="panel-body"><div class="ticket-list" id="meus-list"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-fila">
+      <div class="page-head"><div><h2>Fila de Atendimento</h2><p>Gerencie e atualize todos os chamados</p></div></div>
+      <div class="panel">
+        <div class="panel-head">
+          <div class="chips" id="fila-filters">
+            <button class="chip active" onclick="setFilter('fila','todos',this)">Todos</button>
+            <button class="chip" onclick="setFilter('fila','aberto',this)">Abertos</button>
+            <button class="chip" onclick="setFilter('fila','andamento',this)">Andamento</button>
+            <button class="chip" onclick="setFilter('fila','resolvido',this)">Resolvidos</button>
+            <button class="chip" onclick="setFilter('fila','critico',this)">🔴 Crítico</button>
+            <button class="chip" onclick="setFilter('fila','vencido',this)">⚠️ SLA Vencido</button>
+          </div>
+          <input class="search" id="fila-search" placeholder="🔍 Buscar..." oninput="renderFila()">
+        </div>
+        <div class="panel-body"><div class="ticket-list" id="fila-list"></div></div>
+      </div>
+    </section>
+
+    <section class="page" id="page-users">
+      <div class="page-head"><div><h2>Usuários</h2><p>Cadastre e gerencie os membros da equipe</p></div></div>
+
+      <div class="panel" style="max-width:760px;">
+        <div class="panel-head"><h3>➕ Cadastrar novo usuário</h3></div>
+        <div class="panel-body">
+          <div class="field-row">
+            <div class="field"><label>Nome completo</label><input id="u-nome" placeholder="Ex: Maria Lima"></div>
+            <div class="field"><label>Usuário</label><input id="u-user" placeholder="maria.lima"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Setor</label>
+              <select id="u-setor">
+                <option value="">Selecione...</option>
+                <option>TI</option><option>Financeiro</option><option>RH</option>
+                <option>Vendas</option><option>Administrativo</option><option>Produção</option><option>Suporte</option>
+              </select>
+            </div>
+            <div class="field"><label>Senha inicial</label><input id="u-pass" placeholder="Ex: 1234"></div>
+          </div>
+          <div class="field">
+            <label>Perfil / Função</label>
+            <select id="u-perfil">
+              <option value="usuario">👤 Usuário — abre chamados</option>
+              <option value="n1">🔵 Suporte N1 — primeiro contato</option>
+              <option value="n2">🟣 Suporte N2 — problemas técnicos</option>
+              <option value="n3">🩷 Suporte N3 — especialista / dev</option>
+              <option value="auditor">🔍 Auditor — revisão e conformidade</option>
+              <option value="supervisor">⭐ Supervisor — controle total</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="addUser()">Cadastrar usuário</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Equipe cadastrada</h3><input class="search" id="users-search" placeholder="🔍 Buscar..." oninput="renderUsers()"></div>
+        <div class="panel-body" style="padding:0;overflow-x:auto;">
+          <table>
+            <thead><tr><th>Nome</th><th>Usuário</th><th>Setor</th><th>Perfil</th><th>Chamados</th><th>Ações</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div class="modal-bg" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-head">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <h2 style="font-size:18px;" id="m-title"></h2>
+        <span class="ticket-id" id="m-id"></span>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="flow" id="m-flow">
+        <div class="flow-step" data-s="aberto"><div class="flow-dot">📩</div><div class="flow-label">Aberto</div></div>
+        <div class="flow-step" data-s="andamento"><div class="flow-dot">🔧</div><div class="flow-label">Andamento</div></div>
+        <div class="flow-step" data-s="resolvido"><div class="flow-dot">✅</div><div class="flow-label">Resolvido</div></div>
+      </div>
+
+      <div id="m-sla-wrap" style="margin:18px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label style="margin:0;">Prazo de SLA</label>
+          <span class="sla-pill" id="m-sla-pill"></span>
+        </div>
+        <div class="sla-track"><div class="sla-fill" id="m-sla-fill"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--text-muted);">
+          <span id="m-sla-open"></span><span id="m-sla-due"></span>
+        </div>
+      </div>
+
+      <div class="field-row">
+        <div class="field"><label>Solicitante</label><div class="val" id="m-user"></div></div>
+        <div class="field"><label>Setor</label><div class="val" id="m-setor"></div></div>
+        <div class="field"><label>Categoria</label><div class="val" id="m-cat"></div></div>
+        <div class="field"><label>Prioridade</label><div class="val" id="m-prio"></div></div>
+      </div>
+      <div class="field"><label>Descrição</label><div class="val" id="m-desc"></div></div>
+
+      <div id="m-niveis-view">
+        <label>Níveis atribuídos</label>
+        <div class="ticket-tags" id="m-niveis-tags" style="margin-bottom:6px;"></div>
+      </div>
+
+      <div id="m-ti-controls">
+        <div class="modal-sec">Atendimento (equipe de suporte)</div>
+
+        <div class="field"><label>Status</label>
+          <select id="m-status-sel" onchange="mudarStatus()">
+            <option value="aberto">📩 Aberto</option>
+            <option value="andamento">🔧 Em Andamento</option>
+            <option value="resolvido">✅ Resolvido</option>
+            <option value="cancelado">🚫 Cancelado</option>
+          </select>
+        </div>
+
+        <div class="field"><label>Técnico responsável</label><input id="m-tecnico" placeholder="Nome do técnico"></div>
+
+        <div class="field">
+          <label>Níveis de atendimento (pode marcar mais de um)</label>
+          <div class="opt-grid c3" id="m-niveis">
+            <button class="opt-btn" data-v="n1" onclick="toggle('m-niveis',this)">🔵 N1</button>
+            <button class="opt-btn" data-v="n2" onclick="toggle('m-niveis',this)">🟣 N2</button>
+            <button class="opt-btn" data-v="n3" onclick="toggle('m-niveis',this)">🩷 N3</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" onclick="salvarAtendimento()">💾 Salvar atendimento</button>
+
+        <div class="modal-sec">Reclassificar prioridade</div>
+        <div class="opt-grid c4" id="m-reclass" style="margin-bottom:12px;">
+          <button class="opt-btn" data-v="critico" onclick="pick('m-reclass',this)">🔴 Crítico</button>
+          <button class="opt-btn" data-v="urgente" onclick="pick('m-reclass',this)">🟠 Urgente</button>
+          <button class="opt-btn" data-v="medio"   onclick="pick('m-reclass',this)">🟡 Médio</button>
+          <button class="opt-btn" data-v="baixo"   onclick="pick('m-reclass',this)">🟢 Baixo</button>
+        </div>
+        <div class="field"><label>Justificativa técnica (obrigatória)</label><textarea id="m-justif" placeholder="Motivo da reclassificação..." style="min-height:64px;"></textarea></div>
+        <button class="btn btn-ghost btn-full" onclick="reclassificar()">🔄 Aplicar reclassificação</button>
+
+        <div id="m-hist-wrap" style="display:none;">
+          <div class="modal-sec">Histórico</div>
+          <div id="m-hist"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-ghost btn-full" style="margin-top:18px;" onclick="closeModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   CONFIGURAÇÃO DO SUPABASE
+   Cole abaixo a URL e a chave anon do seu projeto Supabase.
+   Enquanto não configurar, o sistema roda em modo local (demo).
+   ══════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://enbwuouwyrngyljeaxno.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_blZLpvnBwI8rtzWTyIiJkg_i5DSw3He';
+
+let db = null;
+let LOCAL_MODE = true;
+let user = null;
+let allTickets = [];
+let allUsers = [];
+let modalId = null;
+let modalNiveis = [];
+let pickVals = {};
+let filters = { meus: 'todos', fila: 'todos' };
+
+const SLA_HOURS = { critico: 2, urgente: 8, medio: 24, baixo: 72 };
+const PRIO = { critico:{l:'🔴 Crítico',c:'critico'}, urgente:{l:'🟠 Urgente',c:'urgente'}, medio:{l:'🟡 Médio',c:'medio'}, baixo:{l:'🟢 Baixo',c:'baixo'} };
+const NIV  = { n1:'🔵 N1', n2:'🟣 N2', n3:'🩷 N3' };
+const STAT = { aberto:{l:'📩 Aberto',c:'aberto'}, andamento:{l:'🔧 Em Andamento',c:'andamento'}, resolvido:{l:'✅ Resolvido',c:'resolvido'}, cancelado:{l:'🚫 Cancelado',c:'cancelado'} };
+const PERFIL = { usuario:'👤 Usuário', n1:'🔵 Suporte N1', n2:'🟣 Suporte N2', n3:'🩷 Suporte N3', auditor:'🔍 Auditor', supervisor:'⭐ Supervisor' };
+const TI_PROFILES = ['n1','n2','n3','auditor','supervisor'];
+
+function initDB() {
+  if (SUPABASE_URL.startsWith('http') && SUPABASE_KEY.length > 20) {
+    db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    LOCAL_MODE = false;
+  } else { LOCAL_MODE = true; }
+}
+
+const Local = {
+  users() { return JSON.parse(localStorage.getItem('hd_users') || '[]'); },
+  tickets() { return JSON.parse(localStorage.getItem('hd_tickets') || '[]'); },
+  saveUsers(u) { localStorage.setItem('hd_users', JSON.stringify(u)); },
+  saveTickets(t) { localStorage.setItem('hd_tickets', JSON.stringify(t)); },
+  seed() {
+    if (!localStorage.getItem('hd_users'))
+      this.saveUsers([{ id:'u1', nome:'Professor', username:'admin', senha:'admin123', setor:'TI', perfil:'supervisor', created_at:new Date().toISOString() }]);
+    if (!localStorage.getItem('hd_tickets')) this.saveTickets([]);
+  }
+};
+
+async function dataGetUsers() {
+  if (LOCAL_MODE) return Local.users();
+  const { data } = await db.from('usuarios').select('*').order('nome');
+  return data || [];
+}
+async function dataGetTickets() {
+  if (LOCAL_MODE) return Local.tickets().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  const { data } = await db.from('chamados').select('*').order('created_at',{ascending:false});
+  return data || [];
+}
+async function dataFindUser(username, senha) {
+  if (LOCAL_MODE) return Local.users().find(u=>u.username===username && u.senha===senha) || null;
+  const { data } = await db.from('usuarios').select('*').eq('username',username).eq('senha',senha).maybeSingle();
+  return data || null;
+}
+async function dataUserExists(username) {
+  if (LOCAL_MODE) return Local.users().some(u=>u.username===username);
+  const { data } = await db.from('usuarios').select('id').eq('username',username).maybeSingle();
+  return !!data;
+}
+async function dataInsertUser(u) {
+  if (LOCAL_MODE) { const us=Local.users(); u.id='u'+Date.now(); u.created_at=new Date().toISOString(); us.push(u); Local.saveUsers(us); return u; }
+  const { data } = await db.from('usuarios').insert(u).select().single(); return data;
+}
+async function dataUpdateUser(id, patch) {
+  if (LOCAL_MODE) { const us=Local.users(); const i=us.findIndex(x=>x.id===id); if(i>=0){Object.assign(us[i],patch);Local.saveUsers(us);} return; }
+  await db.from('usuarios').update(patch).eq('id',id);
+}
+async function dataDeleteUser(id) {
+  if (LOCAL_MODE) { Local.saveUsers(Local.users().filter(u=>u.id!==id)); return; }
+  await db.from('usuarios').delete().eq('id',id);
+}
+async function dataInsertTicket(t) {
+  if (LOCAL_MODE) {
+    const ts=Local.tickets();
+    t.id='t'+Date.now(); t.numero=(parseInt(localStorage.getItem('hd_counter')||'0')+1);
+    localStorage.setItem('hd_counter', t.numero);
+    t.created_at=new Date().toISOString(); ts.unshift(t); Local.saveTickets(ts); return t;
+  }
+  const { data } = await db.from('chamados').insert(t).select().single(); return data;
+}
+async function dataUpdateTicket(id, patch) {
+  if (LOCAL_MODE) { const ts=Local.tickets(); const i=ts.findIndex(x=>x.id===id); if(i>=0){Object.assign(ts[i],patch);Local.saveTickets(ts);} return; }
+  await db.from('chamados').update(patch).eq('id',id);
+}
+
+function authTab(t) {
+  document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',(t==='login'&&i===0)||(t==='signup'&&i===1)));
+  document.getElementById('form-login').classList.toggle('hidden', t!=='login');
+  document.getElementById('form-signup').classList.toggle('hidden', t!=='signup');
+}
+
+async function doLogin() {
+  const u = document.getElementById('li-user').value.trim().toLowerCase();
+  const p = document.getElementById('li-pass').value;
+  const err = document.getElementById('li-err'); err.textContent = '';
+  if (!u || !p) { err.textContent = 'Preencha usuário e senha.'; return; }
+  const btn = document.getElementById('li-btn'); btn.textContent='Entrando...'; btn.disabled=true;
+  const found = await dataFindUser(u, p);
+  btn.textContent='Entrar'; btn.disabled=false;
+  if (!found) { err.textContent='Usuário ou senha incorretos.'; return; }
+  user = found; localStorage.setItem('hd_session', JSON.stringify(found)); enterApp();
+}
+
+async function doSignup() {
+  const nome=document.getElementById('su-nome').value.trim();
+  const uname=document.getElementById('su-user').value.trim().toLowerCase().replace(/\s+/g,'.');
+  const setor=document.getElementById('su-setor').value;
+  const senha=document.getElementById('su-pass').value;
+  const err=document.getElementById('su-err'); err.textContent='';
+  if(!nome||!uname||!setor||!senha){err.textContent='Preencha todos os campos.';return;}
+  if(senha.length<4){err.textContent='Senha muito curta (mín. 4).';return;}
+  const btn=document.getElementById('su-btn'); btn.textContent='Criando...'; btn.disabled=true;
+  if (await dataUserExists(uname)) { err.textContent='Usuário já existe.'; btn.textContent='Criar conta'; btn.disabled=false; return; }
+  await dataInsertUser({ nome, username:uname, setor, senha, perfil:'usuario' });
+  btn.textContent='Criar conta'; btn.disabled=false;
+  toast('Conta criada! Faça login.', 'ok'); authTab('login');
+  document.getElementById('li-user').value=uname;
+}
+
+function logout() {
+  localStorage.removeItem('hd_session'); user=null;
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('auth').style.display='grid';
+}
+
+function enterApp() {
+  document.getElementById('auth').style.display='none';
+  document.getElementById('app').classList.add('active');
+  document.getElementById('cfg-banner').style.display = LOCAL_MODE ? 'flex' : 'none';
+
+  const initials = user.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+  document.getElementById('side-avatar').textContent = initials;
+  document.getElementById('side-nome').textContent = user.nome;
+  document.getElementById('side-perfil').textContent = PERFIL[user.perfil] || user.perfil;
+
+  const isTI = TI_PROFILES.includes(user.perfil);
+  const isAdmin = user.perfil==='supervisor';
+  document.querySelector('[data-page="dash"]').style.display = isTI ? '' : 'none';
+  document.querySelector('[data-page="fila"]').style.display = isTI ? '' : 'none';
+  document.querySelector('[data-page="users"]').style.display = isAdmin ? '' : 'none';
+  document.getElementById('sep-admin').style.display = isAdmin ? '' : 'none';
+
+  nav(isTI ? 'dash' : 'novo');
+  loadAll();
+  setInterval(()=>loadAll(), 25000);
+}
+
+function nav(page) {
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.page===page));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+}
+
+async function loadAll(showToast) {
+  allUsers = await dataGetUsers();
+  allTickets = await dataGetTickets();
+  renderDash(); renderMeus(); renderFila(); renderUsers();
+  if (showToast) toast('Atualizado!', 'ok');
+}
+
+function pick(group, el) {
+  const g=document.getElementById(group);
+  g.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active'); pickVals[group]=el.dataset.v;
+}
+function toggle(group, el) {
+  el.classList.toggle('active');
+  modalNiveis = [...document.getElementById(group).querySelectorAll('.opt-btn.active')].map(b=>b.dataset.v);
+}
+function toast(msg, type) {
+  const t=document.getElementById('toast'); t.textContent=msg;
+  t.className='toast show '+(type||''); setTimeout(()=>t.className='toast',2800);
+}
+function fmtDate(iso){ return iso ? new Date(iso).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—'; }
+
+function slaInfo(t) {
+  const sla = SLA_HOURS[t.prioridade] || 24;
+  const open = new Date(t.created_at);
+  const due = new Date(open.getTime() + sla*3600*1000);
+  const now = new Date();
+  const resolved = (t.status==='resolvido'||t.status==='cancelado');
+  const endRef = resolved && t.resolved_at ? new Date(t.resolved_at) : now;
+  const elapsed = (endRef - open)/3600000;
+  const pct = Math.min(100, Math.round((elapsed/sla)*100));
+  let status, label, cls;
+  if (resolved) {
+    if (t.resolved_at && new Date(t.resolved_at) <= due) { status='ok'; label='✅ No prazo'; cls='t-ok'; }
+    else { status='late'; label='❌ Vencido'; cls='t-late'; }
+  } else {
+    if (now <= due) { status='warn'; label='🟡 Em andamento'; cls='t-warn'; }
+    else { status='late'; label='⚠️ Atrasado'; cls='t-late'; }
+  }
+  return { sla, due, open, pct, status, label, cls, resolved };
+}
+
+async function abrirChamado() {
+  const title=document.getElementById('n-title').value.trim();
+  const cat=document.getElementById('n-cat').value;
+  const desc=document.getElementById('n-desc').value.trim();
+  const prio=pickVals['n-prio'];
+  if(!title||!cat||!prio){toast('Preencha título, categoria e prioridade.','err');return;}
+  await dataInsertTicket({
+    user_id:user.id, user_nome:user.nome, user_setor:user.setor,
+    titulo:title, categoria:cat, descricao:desc,
+    prioridade:prio, prioridade_original:prio,
+    reclassificado:false, historico:[],
+    niveis:[], tecnico:'', status:'aberto', resolved_at:null
+  });
+  toast('Chamado aberto com sucesso!','ok');
+  document.getElementById('n-title').value='';
+  document.getElementById('n-cat').value='';
+  document.getElementById('n-desc').value='';
+  document.querySelectorAll('#n-prio .opt-btn').forEach(b=>b.classList.remove('active'));
+  pickVals['n-prio']=null;
+  await loadAll(); nav('meus');
+}
+
+function ticketCard(t) {
+  const sla=slaInfo(t);
+  const niveis=(t.niveis||[]).map(n=>`<span class="tag t-${n}">${NIV[n]}</span>`).join('');
+  return `<div class="ticket" onclick="openModal('${t.id}')">
+    <div class="bar" style="background:var(--${PRIO[t.prioridade].c})"></div>
+    <div class="ticket-main">
+      <div class="ticket-top">
+        <span class="ticket-id">#${String(t.numero).padStart(4,'0')}</span>
+        <span class="ticket-title">${t.titulo}</span>
+        ${t.reclassificado?'<span class="tag t-muted">⚙️ Reclassif.</span>':''}
+      </div>
+      <div class="ticket-desc">${(t.descricao||'Sem descrição.').substring(0,110)}</div>
+      <div class="ticket-tags">
+        <span class="tag t-${PRIO[t.prioridade].c}">${PRIO[t.prioridade].l}</span>
+        <span class="tag t-${STAT[t.status].c}">${STAT[t.status].l}</span>
+        ${niveis}
+        <span class="tag t-muted">${t.categoria}</span>
+        <span style="font-size:11px;color:var(--text-muted);">👤 ${t.user_nome}</span>
+      </div>
+    </div>
+    <div class="ticket-side">
+      <span class="sla-pill ${sla.cls}">${sla.label}</span>
+      <span style="font-size:10.5px;color:var(--text-muted);">${fmtDate(t.created_at)}</span>
+    </div>
+  </div>`;
+}
+
+function renderMeus() {
+  const mine = allTickets.filter(t=>t.user_id===user.id);
+  const f=filters.meus;
+  const list = mine.filter(t=> f==='todos'||t.status===f);
+  document.getElementById('meus-sub').textContent = `${mine.length} chamado(s) no total`;
+  document.getElementById('meus-list').innerHTML = list.length ? list.map(ticketCard).join('') :
+    `<div class="empty"><div class="ico">📭</div><p>Nenhum chamado aqui ainda.</p></div>`;
+}
+
+function renderFila() {
+  const f=filters.fila;
+  const q=(document.getElementById('fila-search')?.value||'').toLowerCase();
+  let list = allTickets.filter(t=>{
+    if(f==='todos')return true;
+    if(['aberto','andamento','resolvido'].includes(f))return t.status===f;
+    if(f==='critico')return t.prioridade==='critico';
+    if(f==='vencido'){return slaInfo(t).status==='late';}
+    return true;
+  }).filter(t=> !q || [t.titulo,t.user_nome,t.categoria].some(s=>(s||'').toLowerCase().includes(q)));
+  document.getElementById('fila-list').innerHTML = list.length ? list.map(ticketCard).join('') :
+    `<div class="empty"><div class="ico">🔍</div><p>Nenhum chamado encontrado.</p></div>`;
+}
+
+function renderDash() {
+  const T=allTickets;
+  const cnt=f=>T.filter(f).length;
+  const abertos=cnt(t=>t.status==='aberto');
+  const andamento=cnt(t=>t.status==='andamento');
+  const resolvidos=cnt(t=>t.status==='resolvido');
+  const vencidos=T.filter(t=>slaInfo(t).status==='late').length;
+  const slaOk=T.filter(t=>slaInfo(t).status==='ok').length;
+  const totalResolvidos=T.filter(t=>t.status==='resolvido').length;
+  const slaPct = totalResolvidos ? Math.round((slaOk/totalResolvidos)*100) : 100;
+
+  document.getElementById('dash-kpis').innerHTML = [
+    {l:'Total',v:T.length,c:'var(--primary)',s:'chamados registrados'},
+    {l:'Abertos',v:abertos,c:'var(--n1)',s:'aguardando atendimento'},
+    {l:'Em andamento',v:andamento,c:'var(--urgente)',s:'sendo resolvidos'},
+    {l:'Resolvidos',v:resolvidos,c:'var(--baixo)',s:'concluídos'},
+    {l:'SLA vencido',v:vencidos,c:'var(--critico)',s:'fora do prazo'},
+    {l:'SLA cumprido',v:slaPct+'%',c:'var(--ok)',s:'dentro do prazo'},
+  ].map(k=>`<div class="kpi"><div class="accent-bar" style="background:${k.c}"></div>
+     <div class="label">${k.l}</div><div class="value" style="color:${k.c}">${k.v}</div><div class="sub">${k.s}</div></div>`).join('');
+
+  const maxP=Math.max(1,...['critico','urgente','medio','baixo'].map(p=>cnt(t=>t.prioridade===p)));
+  document.getElementById('dash-prio').innerHTML = ['critico','urgente','medio','baixo'].map(p=>{
+    const n=cnt(t=>t.prioridade===p);
+    return `<div class="bar-row"><div class="bl">${PRIO[p].l}</div>
+      <div class="bt"><div class="bf" style="width:${Math.max(8,(n/maxP)*100)}%;background:var(--${p})">${n||''}</div></div>
+      <div class="bv">${n}</div></div>`;
+  }).join('');
+
+  document.getElementById('dash-sla').innerHTML = [
+    ['No prazo',slaOk,'var(--ok)'],
+    ['Atrasados/Vencidos',vencidos,'var(--critico)'],
+    ['% Cumprimento',slaPct+'%','var(--primary)'],
+  ].map(([l,v,c])=>`<div class="bar-row"><div class="bl">${l}</div>
+     <div class="bt"><div class="bf" style="width:${typeof v==='string'?parseInt(v):Math.min(100,(v/Math.max(1,T.length))*100)}%;background:${c}">${v}</div></div></div>`).join('');
+
+  const maxN=Math.max(1,...['n1','n2','n3'].map(n=>cnt(t=>(t.niveis||[]).includes(n))));
+  document.getElementById('dash-nivel').innerHTML = ['n1','n2','n3'].map(n=>{
+    const c=cnt(t=>(t.niveis||[]).includes(n));
+    return `<div class="bar-row"><div class="bl">${NIV[n]}</div>
+      <div class="bt"><div class="bf" style="width:${Math.max(8,(c/maxN)*100)}%;background:var(--${n})">${c||''}</div></div>
+      <div class="bv">${c}</div></div>`;
+  }).join('');
+
+  const tecMap={};
+  T.forEach(t=>{ if(t.tecnico){tecMap[t.tecnico]=(tecMap[t.tecnico]||0)+1;} });
+  const tecs=Object.entries(tecMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxT=Math.max(1,...tecs.map(x=>x[1]));
+  document.getElementById('dash-tec').innerHTML = tecs.length ? tecs.map(([tec,n])=>
+    `<div class="bar-row"><div class="bl" style="width:110px;">${tec}</div>
+      <div class="bt"><div class="bf" style="width:${Math.max(8,(n/maxT)*100)}%;background:var(--primary)">${n}</div></div></div>`
+  ).join('') : `<div class="empty" style="padding:20px;"><p>Nenhum técnico atribuído ainda.</p></div>`;
+
+  const late=T.filter(t=>slaInfo(t).status==='late').slice(0,5);
+  document.getElementById('dash-late-count').textContent=vencidos;
+  document.getElementById('dash-late').innerHTML = late.length ? late.map(ticketCard).join('') :
+    `<div class="empty" style="padding:24px;"><div class="ico">🎉</div><p>Nenhum chamado com SLA vencido!</p></div>`;
+}
+
+function renderUsers() {
+  const q=(document.getElementById('users-search')?.value||'').toLowerCase();
+  const list=allUsers.filter(u=>[u.nome,u.username,u.setor].some(s=>(s||'').toLowerCase().includes(q)));
+  document.getElementById('users-tbody').innerHTML = list.map(u=>{
+    const n=allTickets.filter(t=>t.tecnico===u.nome||t.user_id===u.id).length;
+    return `<tr>
+      <td><b>${u.nome}</b></td>
+      <td style="color:var(--text-muted)">@${u.username}</td>
+      <td>${u.setor||'—'}</td>
+      <td>
+        <select onchange="changePerfil('${u.id}',this.value)" ${u.id===user.id?'disabled':''} style="padding:5px 8px;font-size:12.5px;width:auto;">
+          ${Object.entries(PERFIL).map(([k,v])=>`<option value="${k}" ${u.perfil===k?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </td>
+      <td style="text-align:center;font-weight:600;">${n}</td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn btn-ghost btn-sm" onclick="resetSenha('${u.id}','${u.username}')">🔑</button>
+        ${u.id!==user.id?`<button class="btn btn-danger btn-sm" onclick="delUser('${u.id}','${u.nome}')">🗑</button>`:''}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function addUser() {
+  const nome=document.getElementById('u-nome').value.trim();
+  const uname=document.getElementById('u-user').value.trim().toLowerCase().replace(/\s+/g,'.');
+  const setor=document.getElementById('u-setor').value;
+  const senha=document.getElementById('u-pass').value;
+  const perfil=document.getElementById('u-perfil').value;
+  if(!nome||!uname||!setor||!senha){toast('Preencha todos os campos.','err');return;}
+  if(await dataUserExists(uname)){toast('Usuário já existe.','err');return;}
+  await dataInsertUser({nome,username:uname,setor,senha,perfil});
+  toast('Usuário cadastrado!','ok');
+  ['u-nome','u-user','u-pass'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('u-setor').value=''; document.getElementById('u-perfil').value='usuario';
+  await loadAll();
+}
+async function changePerfil(id,perfil){ await dataUpdateUser(id,{perfil}); toast('Perfil atualizado!','ok'); await loadAll(); }
+async function resetSenha(id,uname){ const s=prompt(`Nova senha para @${uname}:`); if(!s||s.length<4){toast('Senha inválida.','err');return;} await dataUpdateUser(id,{senha:s}); toast('Senha redefinida!','ok'); }
+async function delUser(id,nome){ if(!confirm(`Excluir ${nome}?`))return; await dataDeleteUser(id); toast('Usuário removido.','ok'); await loadAll(); }
+
+function openModal(id) {
+  const t=allTickets.find(x=>x.id===id); if(!t)return;
+  modalId=id; modalNiveis=[...(t.niveis||[])];
+
+  document.getElementById('m-title').textContent=t.titulo;
+  document.getElementById('m-id').textContent='#'+String(t.numero).padStart(4,'0');
+  document.getElementById('m-user').textContent=t.user_nome;
+  document.getElementById('m-setor').textContent=t.user_setor;
+  document.getElementById('m-cat').textContent=t.categoria;
+  document.getElementById('m-prio').innerHTML=`<span class="tag t-${PRIO[t.prioridade].c}">${PRIO[t.prioridade].l}</span>`+(t.reclassificado?` <span style="font-size:11px;color:var(--text-muted)">(orig: ${PRIO[t.prioridade_original].l})</span>`:'');
+  document.getElementById('m-desc').textContent=t.descricao||'(sem descrição)';
+
+  const steps=['aberto','andamento','resolvido']; const ci=steps.indexOf(t.status);
+  document.querySelectorAll('#m-flow .flow-step').forEach((el,i)=>{ el.className='flow-step'+(i<ci?' done':i===ci?' active':''); });
+
+  const sla=slaInfo(t);
+  document.getElementById('m-sla-pill').className='sla-pill '+sla.cls;
+  document.getElementById('m-sla-pill').textContent=sla.label;
+  const fill=document.getElementById('m-sla-fill');
+  fill.style.width=sla.pct+'%';
+  fill.style.background = sla.status==='late'?'var(--critico)':sla.status==='ok'?'var(--ok)':'var(--warn)';
+  document.getElementById('m-sla-open').textContent='Aberto: '+fmtDate(t.created_at);
+  document.getElementById('m-sla-due').textContent='Prazo: '+fmtDate(sla.due.toISOString());
+
+  document.getElementById('m-niveis-tags').innerHTML=(t.niveis||[]).length?(t.niveis||[]).map(n=>`<span class="tag t-${n}">${NIV[n]}</span>`).join(''):'<span style="font-size:12px;color:var(--text-muted)">Nenhum nível atribuído</span>';
+
+  const isTI=TI_PROFILES.includes(user.perfil);
+  document.getElementById('m-ti-controls').style.display=isTI?'':'none';
+
+  if(isTI){
+    document.getElementById('m-status-sel').value=t.status;
+    document.getElementById('m-tecnico').value=t.tecnico||'';
+    document.querySelectorAll('#m-niveis .opt-btn').forEach(b=>b.classList.toggle('active',modalNiveis.includes(b.dataset.v)));
+    document.querySelectorAll('#m-reclass .opt-btn').forEach(b=>b.classList.remove('active'));
+    pickVals['m-reclass']=null;
+    document.getElementById('m-justif').value='';
+    const hist=t.historico||[];
+    const hw=document.getElementById('m-hist-wrap');
+    if(hist.length){hw.style.display='';document.getElementById('m-hist').innerHTML=hist.slice().reverse().map(h=>
+      `<div style="background:var(--surface-2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--text-soft);margin-bottom:6px;line-height:1.6;">
+       <b>${h.tipo==='reclass'?'🔄 Reclassificação':'📶 Atendimento'}</b> · ${h.data}<br>${h.texto}</div>`).join('');
+    } else hw.style.display='none';
+  }
+
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+async function mudarStatus() {
+  const t=allTickets.find(x=>x.id===modalId); if(!t)return;
+  const st=document.getElementById('m-status-sel').value;
+  const patch={status:st};
+  if((st==='resolvido'||st==='cancelado') && !t.resolved_at) patch.resolved_at=new Date().toISOString();
+  if(st!=='resolvido'&&st!=='cancelado') patch.resolved_at=null;
+  await dataUpdateTicket(modalId,patch); Object.assign(t,patch);
+  await loadAll(); openModal(modalId); toast('Status atualizado!','ok');
+}
+
+async function salvarAtendimento() {
+  const t=allTickets.find(x=>x.id===modalId); if(!t)return;
+  const tec=document.getElementById('m-tecnico').value.trim();
+  const hist=[...(t.historico||[])];
+  hist.push({tipo:'atend',data:new Date().toLocaleString('pt-BR'),texto:`Técnico: ${tec||'—'} · Níveis: ${modalNiveis.map(n=>NIV[n]).join(', ')||'nenhum'}`});
+  await dataUpdateTicket(modalId,{tecnico:tec,niveis:modalNiveis,historico:hist});
+  Object.assign(t,{tecnico:tec,niveis:modalNiveis,historico:hist});
+  await loadAll(); openModal(modalId); toast('Atendimento salvo!','ok');
+}
+
+async function reclassificar() {
+  const t=allTickets.find(x=>x.id===modalId); if(!t)return;
+  const novo=pickVals['m-reclass'];
+  const just=document.getElementById('m-justif').value.trim();
+  if(!novo){toast('Selecione a nova prioridade.','err');return;}
+  if(just.length<10){toast('Justifique melhor (mín. 10 caracteres).','err');return;}
+  if(novo===t.prioridade){toast('A prioridade já é essa.','err');return;}
+  const hist=[...(t.historico||[])];
+  hist.push({tipo:'reclass',data:new Date().toLocaleString('pt-BR'),texto:`${PRIO[t.prioridade].l} → ${PRIO[novo].l} · ${document.getElementById('m-tecnico').value||user.nome}<br>📝 ${just}`});
+  const patch={prioridade:novo,reclassificado:true,prioridade_original:t.prioridade_original||t.prioridade,historico:hist};
+  await dataUpdateTicket(modalId,patch); Object.assign(t,patch);
+  await loadAll(); openModal(modalId); toast('Prioridade reclassificada!','ok');
+}
+
+function setFilter(scope,val,el){
+  filters[scope]=val;
+  el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  scope==='meus'?renderMeus():renderFila();
+}
+
+initDB();
+if (LOCAL_MODE) Local.seed();
+(function boot(){
+  const sess=localStorage.getItem('hd_session');
+  if(sess){ user=JSON.parse(sess); enterApp(); }
+})();
+</script>
+</body>
+</html>
